@@ -32,7 +32,14 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
 
+    const jobCollection = client.db('jobtexDB').collection('job');
 
+    app.post('/jobPosts', async(req, res) =>{
+        const jobs = req.body;
+        console.log(jobs);
+        const result = await jobCollection.insertOne(jobs);
+        res.send(result);
+    })
 
 
 
