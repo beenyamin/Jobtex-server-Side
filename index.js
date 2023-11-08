@@ -65,9 +65,6 @@ async function run() {
 
 
 
-
-
-
     // auth related api
         app.post('/user', async (req, res,) => {
             const user = req.body;
@@ -91,6 +88,16 @@ async function run() {
             const result = await jobCollection.insertOne(jobs);
             res.send(result);
         })
+
+
+        app.get('/jobPosts', async(req, res)=> {
+            const cursor = jobCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+
+
+        })
+
 
 
 
