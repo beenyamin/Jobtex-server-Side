@@ -10,8 +10,13 @@ const port = process.env.PORT || 5000;
 
 
 app.use(cors({
-    origin: ['http://localhost:5173'],
-    credentials: true
+    origin: [
+        // 'http://localhost:5173',
+    'https://assignment-11-e300a.web.app',
+    'https://assignment-11-e300a.firebaseapp.com',
+    
+    ],
+    credentials: true,
 }));
 app.use(express.json());
 app.use(cookieParser());
@@ -68,12 +73,14 @@ async function run() {
         // auth related api
         app.post('/user', async (req, res,) => {
             const user = req.body;
+            // console.log(req.cookies.token)
             console.log(user);
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
             res
                 .cookie('token', token, {
-                    httpOnly: true,
-                    secure: false,
+                    httpOnly: true ,
+                    secure: true ,
+                    sameSite: 'none'
                 })
                 .send({ success: true })
         })
@@ -124,6 +131,15 @@ async function run() {
             const result = await jobCollection.deleteOne(query);
             res.send(result);
         })
+
+        app.get('/allpost', async (req, res) => {
+            const cursor = jobCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+
+
+        })
+
 
         app.get('/updatepost/:id', async (req, res) => {
             const id = req.params.id;
