@@ -33,25 +33,25 @@ const client = new MongoClient(uri, {
     }
 });
 
-        // verifyToken
-        const verifyToken = async (req, res, next) => {
-            const token = req.cookies?.token;
-            console.log('value of token in middleware:', token)
-            if (!token) {
-                return res.status(401).send({ massage: 'not authorized' })
-            }
-            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+// verifyToken
+const verifyToken = async (req, res, next) => {
+    const token = req.cookies?.token;
+    console.log('value of token in middleware:', token)
+    if (!token) {
+        return res.status(401).send({ massage: 'not authorized' })
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
 
-                if (err) {
-                    console.log(err)
-                    return res.status(401).send({ massage: 'unauthorized' })
-                }
-                console.log('value in the token', decoded)
-                req.user = decoded;
-                next()
-            })
-
+        if (err) {
+            console.log(err)
+            return res.status(401).send({ massage: 'unauthorized' })
         }
+        console.log('value in the token', decoded)
+        req.user = decoded;
+        next()
+    })
+
+}
 
 
 
@@ -65,7 +65,7 @@ async function run() {
 
 
 
-    // auth related api
+        // auth related api
         app.post('/user', async (req, res,) => {
             const user = req.body;
             console.log(user);
@@ -78,10 +78,14 @@ async function run() {
                 .send({ success: true })
         })
 
+        app.post('/logout', async (req, res) => {
+            const user = req.body;
+            res.clearCookie('token', { maxAge: 0 }).send({ success: true })
+        })
 
 
 
-        // Jbo post api
+        // Job post api
         app.post('/jobPosts', async (req, res) => {
             const jobs = req.body;
             console.log(jobs);
@@ -90,12 +94,35 @@ async function run() {
         })
 
 
-        app.get('/jobPosts', async(req, res)=> {
+        app.get('/jobPosts', async (req, res) => {
             const cursor = jobCollection.find();
             const result = await cursor.toArray();
             res.send(result)
 
 
+        })
+
+        // my posted jobs
+
+        app.get('/mypostedjobs', verifyToken, async (req, res) => {
+            console.log('user in the valid token', req.user)
+            if (req.query.email !== req.user.email) {
+                return res.status(403).send({ massage: 'forbidden access kkkkkk' })
+            }
+
+            let query = {};
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await jobCollection.find(query).toArray();
+            res.send(result)
+        })
+
+        app.delete('/job/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await jobCollection.deleteOne(query);
+            res.send(result);
         })
 
 
