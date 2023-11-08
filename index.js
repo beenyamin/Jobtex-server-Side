@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser')
 
@@ -124,6 +124,38 @@ async function run() {
             const result = await jobCollection.deleteOne(query);
             res.send(result);
         })
+
+        app.get('/updatepost/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await jobCollection.findOne(query)
+            res.send(result);
+        })
+
+
+
+        app.put('/updatepost/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true };
+            const updatedPost = req.body;
+            const posts = {
+                $set: {
+                    jobTitle: updatedPost.jobTitle,
+                    maximumPrice: updatedPost.maximumPrice,
+                    minimumPrice: updatedPost.minimumPrice,
+                    description: updatedPost.description,
+                    date: updatedPost.date,
+                    category: updatedPost.category,
+                    email: updatedPost.email
+
+
+                }
+            }
+            const result = await jobCollection.updateOne(filter, posts, options);
+            res.send(result);
+        })
+
 
 
 
